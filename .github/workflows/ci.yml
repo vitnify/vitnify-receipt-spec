@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  markdown:
+    name: markdown link check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # This is a docs-only repo, so CI just keeps the cross-references honest:
+      # every relative link between the spec, README, and policy files must resolve.
+      # External URLs (vitnify.com, the implementation repos) are ignored via
+      # .github/mlc_config.json so CI never goes red on a network hiccup.
+      - name: Check Markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-verbose-mode: "yes"
+          config-file: ".github/mlc_config.json"

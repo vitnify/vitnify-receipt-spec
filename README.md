@@ -15,3 +15,10 @@ any party can verify a receipt offline — no model, no network, no secret.
 
 ## License
 Apache-2.0. **"vitnify"** / **"vitnify-verified"** are trademarks — see [TRADEMARKS.md](TRADEMARKS.md).
+
+## Part of Vitnify
+This spec is one of three open repos:
+
+- **[vitni-tensor](https://github.com/vitnify/vitni-tensor)** — the engine (tier-1 model-computation digest).
+- **[vitnify](https://github.com/vitnify/vitnify)** — the SDK (the full receipt).
+- **[vitnify.com](https://vitnify.com)** — the project.
