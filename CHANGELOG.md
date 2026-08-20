@@ -20,6 +20,10 @@ file. This log records the lineage.
 - **Made explicit:** a conformant verifier accepts **every published format
   version** and reconstructs each receipt's signed body from its own `v`, so a
   frozen format stays verifiable across verifier upgrades.
+- **Tightened capability containment:** every `tool_call` must be within
+  `capabilities` **or** a clean denial (decision `deny`, no `result`); the verifier
+  fails closed on the decision label instead of trusting the word "allow", so a
+  verifying receipt proves no ungranted tool executed.
 - **Unchanged:** the tier-1 model-computation digest, its `"vitnify-receipt v1\x00"`
   domain separator, and the conformance anchor `9c0754…f3b0f`.
 

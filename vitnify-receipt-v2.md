@@ -107,9 +107,12 @@ receipt that a newer verifier can't read defeats "verify it years later."
    receipt with `sig_alg` = `"none"`, an unknown algorithm, or an HMAC receipt
    presented without its key is **invalid** — an unverifiable receipt is never
    `ok`.
-3. **Capability containment.** Every *allowed* `tool_call` in the log must name a
-   tool in `capabilities`. A receipt whose log allowed an undeclared tool is
-   invalid, so the receipt *proves* containment held rather than merely listing it.
+3. **Capability containment.** Every `tool_call` must name a tool in `capabilities`
+   **or** be a clean denial — decision `deny` (case/space-insensitive) with no
+   `result`. An ungranted tool that is not cleanly denied — any other decision
+   string, or one carrying a result — is invalid. The verifier fails closed on the
+   decision label, so the receipt *proves* no ungranted tool executed rather than
+   trusting the word "allow".
 
 Rejects any edit, reorder, truncation, forgery, or out-of-policy action in the
 transcript.
