@@ -93,7 +93,10 @@ object (see Hosted models).
 ## Verification
 
 Verification **fails closed**: a receipt that cannot be cryptographically verified
-never returns a valid verdict.
+never returns a valid verdict. It also fails closed on any **unrecognised
+self-declared label** — an unknown event `kind`, `decision`, or `sig_alg` is invalid
+— so a check that filters events by such a label can never be sidestepped by
+relabelling.
 
 A conformant verifier accepts **every published format version** and reconstructs
 each receipt's signed body from its own `v` (v1 binds seven fields; v2 adds the

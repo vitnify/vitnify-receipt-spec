@@ -24,6 +24,9 @@ file. This log records the lineage.
   `capabilities` **or** a clean denial (decision `deny`, no `result`); the verifier
   fails closed on the decision label instead of trusting the word "allow", so a
   verifying receipt proves no ungranted tool executed.
+- **Fail closed on unrecognised labels:** an unknown event `kind`, `decision`, or
+  `sig_alg` is invalid, so a check that filters events by such a label cannot be
+  sidestepped by relabelling.
 - **Unchanged:** the tier-1 model-computation digest, its `"vitnify-receipt v1\x00"`
   domain separator, and the conformance anchor `9c0754…f3b0f`.
 
