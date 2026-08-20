@@ -11,10 +11,15 @@ no secret.
 > **Change from v1.** v2 adds `issued_at`, `nonce`, and `run_id` to the signed body
 > so a receipt is time-placeable and unique (one run's receipt can no longer stand
 > in for another's), specifies **fail-closed** verification and capability
-> containment, and defines how a **hosted** model is recorded. The tier-1
-> model-computation digest is a distinct, lower-level version line and is
-> **unchanged** — it and the conformance anchor below are identical to v1. v1
+> containment, and defines how a **hosted** model is recorded. Receipt-format v1
 > remains frozen and valid for receipts issued under it.
+>
+> The tier-1 model-computation digest is a **distinct, lower-level version line**. It
+> has advanced to its own **v2**, which binds the numerical *regime* — the reduction
+> contract the forward pass ran under (see Two tiers) — so a digest records which
+> arithmetic produced it, and a deliberate regime change is distinguishable from
+> tampering. Tier-1 v1 stays frozen: the historical anchor `9c0754…` still reproduces
+> under it.
 
 ---
 
@@ -24,7 +29,8 @@ no secret.
 The per-step commitment to what the model actually computed:
 
 ```
-model_digest = BLAKE3( "vitnify-receipt v1\x00"
+model_digest = BLAKE3( "vitnify-receipt v2\x00"
+                       || LEB128(|regime|)        || regime
                        || LEB128(n_inputs)        || inputs
                        || LEB128(n_outputs)       || outputs
                        || LEB128(n_ops)           || per-op records
@@ -32,10 +38,22 @@ model_digest = BLAKE3( "vitnify-receipt v1\x00"
                        || LEB128(n_interventions) || intervention records )
 ```
 
-Fields are length-prefixed so concatenation is injective. This digest is
-reproducible **bit-for-bit across CPU vendors and instruction sets**. Its domain
-separator stays `"vitnify-receipt v1\x00"`: the tier-1 digest is versioned
-independently of the receipt and did not change in v2.
+Fields are length-prefixed so concatenation is injective. `regime` (e.g.
+`vitni-regime-1`) names the numerical reduction contract the forward pass ran under;
+binding it lets a verifier distinguish a **deliberate regime change** ("cannot replay
+under this engine") from tampering. Under a fixed regime the digest is reproducible
+**bit-for-bit across CPU vendors and instruction sets**.
+
+What the shipped `vitni-receipt` binary commits is an **I/O pair under a fixed
+engine**: `inputs = (model_id, weights_hash, arch_hash, prompt_tokens, n_new_tokens)`,
+`outputs = (output_tokens, output_tokens_hash)`, with `n_ops = 0`. The per-op /
+activation / intervention records are an available mode the shipped binary does not
+emit — so a different implementation producing the same tokens under the same regime
+yields the same digest.
+
+The tier-1 digest is versioned independently of the receipt format. Tier-1 **v1**
+(`"vitnify-receipt v1\x00"`, no regime) is frozen and retained so pre-regime receipts —
+including the anchor `9c0754…` — stay reproducible.
 
 **Tier 2 — execution receipt** (produced by the SDK). The full agent-run object,
 which *embeds* the tier-1 digests.
@@ -174,16 +192,21 @@ Verification Authority against such an anchor.
 
 ## Reference value
 
-A conformance anchor for the tier-1 model-computation digest (unchanged from v1),
-reproducible with the `vitni-receipt` binary from the `vitni-tensor` engine:
+A conformance anchor for the tier-1 model-computation digest, reproducible with the
+`vitni-receipt` binary from the `vitni-tensor` engine:
 
 ```
-model         TinyLlama-1.1B-Chat, Q4_K_M GGUF
-model_id      tinyllama-1.1b-chat-Q4_K_M
-prompt        [1, 9038, 2501, 263, 931, 29892]      ("Once upon a time,")
-n_new         20
-model_digest  9c0754458633e863e0fb5bb2bd00df0d8b813934687b9a4097a1a9a4179f3b0f
+model            TinyLlama-1.1B-Chat, Q4_K_M GGUF
+model_id         tinyllama-1.1b-chat-Q4_K_M
+weights_hash     ab7591e1ec49cb5dce27865d31d436091a433a3e807e9920a572c42dda294b0d
+prompt           [1, 9038, 2501, 263, 931, 29892]      ("Once upon a time,")
+n_new            20
+regime           vitni-regime-1
+model_digest     ffebe8620f3a78009317c2d72fcc373b4b3cd5c63ba424f6776a2007e119c88f   (tier-1 v2, current)
+model_digest_v1  9c0754458633e863e0fb5bb2bd00df0d8b813934687b9a4097a1a9a4179f3b0f   (tier-1 v1, frozen)
 ```
 
-An implementation is conformant if it reproduces this digest byte-for-bit — on any
-CPU vendor or instruction set.
+An implementation is conformant if it reproduces the v2 `model_digest` byte-for-bit —
+on any CPU vendor or instruction set — under regime `vitni-regime-1`. The v1 digest is
+retained so receipts issued before the regime binding stay verifiable; the same
+reference run reproduces it exactly.
