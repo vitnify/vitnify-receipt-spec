@@ -4,7 +4,7 @@ The canonical format for a **vitnify execution receipt** — one signed, self-ve
 object that binds an AI-agent run (its model computation, granted capabilities, tool
 calls, results, and order) so an action cannot be detached from what produced it.
 
-**Current version:** [`vitnify-receipt-v1.md`](vitnify-receipt-v1.md)
+**Current version:** [`vitnify-receipt-v2.md`](vitnify-receipt-v2.md) · prior (frozen): [`v1`](vitnify-receipt-v1.md)
 
 Everything hashes with BLAKE3; signatures are ed25519 with an embedded public key, so
 any party can verify a receipt offline — no model, no network, no secret.
