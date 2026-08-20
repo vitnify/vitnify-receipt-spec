@@ -61,9 +61,13 @@ The signed digest is `BLAKE3(canonical_json(body))`, where `body` is:
 
 `canonical_json` = UTF-8 JSON, keys sorted, no whitespace.
 
-`issued_at` is **issuer-asserted**: it places the receipt in time and defeats
-silent replay, but it is not a trusted timestamp. Non-repudiable time requires an
-RFC 3161 token or the Verification Authority countersignature.
+`issued_at` and `program_hash` are **caller/issuer-asserted**. `issued_at` places
+the receipt in time and defeats silent replay, but it is not a trusted timestamp —
+non-repudiable time requires an RFC 3161 token or the Verification Authority
+countersignature. `program_hash` binds whatever string the issuer supplies; it does
+not itself hash the agent's code. Likewise, `model_digests` is empty for a hosted or
+non-deterministic backend — an integrity-only receipt that binds the transcript, not
+the computation.
 
 ### Signature envelope
 `sig` (ed25519 over the 32-byte receipt digest), `sig_alg` = `"ed25519"`,
@@ -116,6 +120,13 @@ receipt that a newer verifier can't read defeats "verify it years later."
    string, or one carrying a result — is invalid. The verifier fails closed on the
    decision label, so the receipt *proves* no ungranted tool executed rather than
    trusting the word "allow".
+
+   **Enforced vs observed.** A decision of `allow`/`deny` was *gated* by the
+   capability wall; a decision of `observed` was *recorded* by a passive adapter,
+   not enforced. A receipt containing any observed decision is integrity-only for
+   containment — the verifier reports `containment_enforced = false` — so it is a
+   valid transcript, not proof that containment was applied. A containment *proof*
+   requires `ok` **and** `containment_enforced`.
 
 Rejects any edit, reorder, truncation, forgery, or out-of-policy action in the
 transcript.

@@ -27,6 +27,10 @@ file. This log records the lineage.
 - **Fail closed on unrecognised labels:** an unknown event `kind`, `decision`, or
   `sig_alg` is invalid, so a check that filters events by such a label cannot be
   sidestepped by relabelling.
+- **Enforced vs observed containment:** a receipt with any `observed` tool decision
+  is integrity-only for containment (`containment_enforced = false`); a containment
+  proof requires `ok` and `containment_enforced`. Noted `program_hash` is
+  caller-asserted and empty `model_digests` (hosted) is integrity-only.
 - **Unchanged:** the tier-1 model-computation digest, its `"vitnify-receipt v1\x00"`
   domain separator, and the conformance anchor `9c0754…f3b0f`.
 
