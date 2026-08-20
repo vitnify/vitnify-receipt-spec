@@ -107,12 +107,14 @@ hash  = BLAKE3(canonical_json(Event))          # prev = previous event's hash
 `kind` ∈ { `llm_call`, `tool_call`, `entropy`, `agent_step` }. An `llm_call`
 payload carries `{prompt_hash, tokens, seed, model_digest}` — so committing the
 event log (via `event_root` + `head_hash`) transitively binds every model step's
-computation into the receipt. It **should** also carry `regime`, the tier-1 numerical
-regime (e.g. `vitni-regime-1`) the `model_digest` was produced under: bound like every
-payload field, and readable, so a level-2 verifier can report a **regime mismatch**
-("issued under regime-1, this engine is regime-2") rather than an opaque digest mismatch
-indistinguishable from tampering. For a hosted model it may also carry a `provider`
-object (see Hosted models).
+computation into the receipt. It **should** also carry `regime` (the tier-1 numerical
+regime, e.g. `vitni-regime-1`) and `weights_hash` (the BLAKE3 of the model weights) — the
+two engine inputs the `model_digest` depends on but that cannot be read back out of it.
+Both are already bound (they are folded into the digest); recording them as payload
+fields makes them **readable** too, so a level-2 verifier can report a **regime mismatch**
+("issued under regime-1, this engine is regime-2") or **wrong weights** rather than an
+opaque digest mismatch indistinguishable from tampering. For a hosted model it may also
+carry a `provider` object (see Hosted models).
 
 ---
 
@@ -155,11 +157,12 @@ transcript.
 
 **Level 2 — recomputation (needs the weights).** Re-run each `llm_call` through
 `vitni-tensor` and confirm every `model_digest` reproduces bit-for-bit. Available
-for local weights only (see Hosted models). Compare the verifying engine's regime with
-the payload's `regime` first: if they differ, report a **regime mismatch** — the receipt
-was issued under a different numerical contract and this engine cannot reproduce it —
-rather than reporting a bare digest mismatch, which a regime change and tampering would
-both produce.
+for local weights only (see Hosted models). Before recomputing, check the payload's
+`regime` against the verifying engine's and the payload's `weights_hash` against the
+loaded weights: if either differs, report a **regime mismatch** or **wrong weights** —
+the receipt was issued under a different numerical contract or against different weights,
+which this engine cannot reproduce — rather than a bare digest mismatch, which a regime
+change, a weights change, and tampering would all produce.
 
 **Signer pinning (optional).** An embedded key proves signer *continuity*, not
 *authority*. A verifier may supply an allow-list of trusted ed25519 keys; the
