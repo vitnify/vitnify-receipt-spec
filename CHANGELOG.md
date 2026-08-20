@@ -17,6 +17,9 @@ file. This log records the lineage.
 - **Added optional signer pinning** (`pinned_pubkeys`) to the open-source verifier.
 - **Added a Hosted models section:** hosted receipts are integrity-only (no tier-1
   digest); record provider identity; do not replay as a control.
+- **Made explicit:** a conformant verifier accepts **every published format
+  version** and reconstructs each receipt's signed body from its own `v`, so a
+  frozen format stays verifiable across verifier upgrades.
 - **Unchanged:** the tier-1 model-computation digest, its `"vitnify-receipt v1\x00"`
   domain separator, and the conformance anchor `9c0754…f3b0f`.
 

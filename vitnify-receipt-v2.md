@@ -95,6 +95,11 @@ object (see Hosted models).
 Verification **fails closed**: a receipt that cannot be cryptographically verified
 never returns a valid verdict.
 
+A conformant verifier accepts **every published format version** and reconstructs
+each receipt's signed body from its own `v` (v1 binds seven fields; v2 adds the
+three above). A frozen format must stay verifiable across verifier upgrades — a
+receipt that a newer verifier can't read defeats "verify it years later."
+
 **Level 1 — integrity (no model).**
 1. Recompute `event_root`, `head_hash`, `n_events`, and `model_digests` from the
    raw events and confirm they match the receipt.
