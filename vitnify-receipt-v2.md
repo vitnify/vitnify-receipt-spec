@@ -39,7 +39,7 @@ model_digest = BLAKE3( "vitnify-receipt v2\x00"
 ```
 
 Fields are length-prefixed so concatenation is injective. `regime` (e.g.
-`vitni-regime-1`) names the numerical reduction contract the forward pass ran under;
+`vitni-regime-2`) names the numerical reduction contract the forward pass ran under;
 binding it lets a verifier distinguish a **deliberate regime change** ("cannot replay
 under this engine") from tampering. Under a fixed regime the digest is reproducible
 **bit-for-bit across CPU vendors and instruction sets**.
@@ -108,7 +108,7 @@ hash  = BLAKE3(canonical_json(Event))          # prev = previous event's hash
 payload carries `{prompt_hash, tokens, seed, model_digest}` — so committing the
 event log (via `event_root` + `head_hash`) transitively binds every model step's
 computation into the receipt. It **should** also carry `regime` (the tier-1 numerical
-regime, e.g. `vitni-regime-1`) and `weights_hash` (the BLAKE3 of the model weights) — the
+regime, e.g. `vitni-regime-2`) and `weights_hash` (the BLAKE3 of the model weights) — the
 two engine inputs the `model_digest` depends on but that cannot be read back out of it.
 Both are already bound (they are folded into the digest); recording them as payload
 fields makes them **readable** too, so a level-2 verifier can report a **regime mismatch**
@@ -212,12 +212,17 @@ model_id         tinyllama-1.1b-chat-Q4_K_M
 weights_hash     ab7591e1ec49cb5dce27865d31d436091a433a3e807e9920a572c42dda294b0d
 prompt           [1, 9038, 2501, 263, 931, 29892]      ("Once upon a time,")
 n_new            20
-regime           vitni-regime-1
-model_digest     ffebe8620f3a78009317c2d72fcc373b4b3cd5c63ba424f6776a2007e119c88f   (tier-1 v2, current)
+regime           vitni-regime-2
+model_digest     7a2e28c94c351b8e303e0f8c12a719b8aaa2c94e7233a96b4348a7dc6d341730   (tier-1 v2, current)
 model_digest_v1  9c0754458633e863e0fb5bb2bd00df0d8b813934687b9a4097a1a9a4179f3b0f   (tier-1 v1, frozen)
 ```
 
 An implementation is conformant if it reproduces the v2 `model_digest` byte-for-bit —
-on any CPU vendor or instruction set — under regime `vitni-regime-1`. The v1 digest is
+on any CPU vendor or instruction set — under regime `vitni-regime-2`. The v1 digest is
 retained so receipts issued before the regime binding stay verifiable; the same
 reference run reproduces it exactly.
+
+Under the prior regime `vitni-regime-1`, this same run's v2 `model_digest` was
+`ffebe8620f3a78009317c2d72fcc373b4b3cd5c63ba424f6776a2007e119c88f`; the digest moved
+because the regime is bound, which is exactly the property that lets a verifier tell a
+regime change from tampering. The v1 digest above is unchanged across the two regimes.
