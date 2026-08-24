@@ -164,10 +164,22 @@ the receipt was issued under a different numerical contract or against different
 which this engine cannot reproduce — rather than a bare digest mismatch, which a regime
 change, a weights change, and tampering would all produce.
 
-**Signer pinning (optional).** An embedded key proves signer *continuity*, not
-*authority*. A verifier may supply an allow-list of trusted ed25519 keys; the
-receipt's key must be on it. This closes the re-signing gap (below) in the
-open-source verifier, with no managed service.
+**Integrity vs. authority — a split verdict.** Level 1 answers two distinct questions,
+and a verifier reports them separately rather than collapsing them into one boolean:
+
+- `integrity_ok` — is the transcript internally consistent and validly signed by
+  *whoever* signed it (steps 1–3 above)? Computable by **anyone, offline, with no secret**.
+- `authority_ok` — was the signer an *approved runtime*? An embedded key proves signer
+  *continuity*, not authority, so this needs a trust root and is `true` / `false` / `null`.
+  **Signer pinning stays optional:** a verifier MAY supply an allow-list of trusted ed25519
+  keys, in which case `authority_ok` is whether the receipt's key is on it; with no
+  allow-list it is `null` — **unestablished**, a state a stranger offline can never resolve
+  and MUST be told plainly, never as a bare `false` indistinguishable from a forgery.
+
+`ok` = `integrity_ok` **and** an authorised signer. A verifier with no trust root reports
+`integrity_ok = true`, `authority_ok = null`: the receipt is verifiable, its provenance
+simply unanchored. Pinning closes the re-signing gap (below) in the open-source verifier,
+with no managed service.
 
 ---
 
