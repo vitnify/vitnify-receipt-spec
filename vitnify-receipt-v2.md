@@ -213,6 +213,32 @@ Verification Authority against such an anchor.
 
 ---
 
+## Bring your own trust root (hardware-anchored signer)
+
+You do not need the vitnify Verification Authority to anchor a receipt in hardware.
+The open-source verifier already supports a self-managed trust root through
+`pinned_pubkeys`, so you can run your own hardware-backed signer:
+
+1. **Generate the ed25519 signing key inside a TEE or TPM you control** (Intel SGX,
+   AMD SEV-SNP, AWS Nitro Enclaves, Apple Secure Enclave, a TPM, and so on). The private
+   key is created in the hardware and never leaves it.
+2. **Issue receipts signed by that key.** Signing happens inside the enclave; the receipt
+   carries the enclave's public key as its signer, exactly like any other receipt.
+3. **Pin that public key in your verifiers** (`pinned_pubkeys`). Receipts from your enclave
+   then verify with `authority_ok = true`, bound to a key that provably lives in your hardware.
+
+This gives you a hardware-held signer that a cooperating verifier (one you have shared the
+pin with) can rely on, with no managed service.
+
+**What this does not give you yet.** A verifier that has *not* pinned your key cannot tell
+from the receipt alone that the key is enclave-resident in a genuine TEE. That requires a
+**remote-attestation binding**: embedding and validating an SGX/SEV/TPM attestation quote so
+an unpinned third party can confirm enclave residency without trusting the deployer. That
+quote format is not specified here; it is the role of a hardware-attested Verification
+Authority, which is out of scope for this open spec.
+
+---
+
 ## Reference value
 
 A conformance anchor for the tier-1 model-computation digest, reproducible with the
