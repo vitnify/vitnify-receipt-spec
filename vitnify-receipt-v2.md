@@ -42,7 +42,12 @@ Fields are length-prefixed so concatenation is injective. `regime` (e.g.
 `vitni-regime-2`) names the numerical reduction contract the forward pass ran under;
 binding it lets a verifier distinguish a **deliberate regime change** ("cannot replay
 under this engine") from tampering. Under a fixed regime the digest is reproducible
-**bit-for-bit across CPU vendors and instruction sets**.
+**bit-for-bit across CPU vendors and instruction sets** — and, via the engine's Metal and
+CUDA backends, **across GPU vendors and CPU↔GPU**: a GPU backend emits the same digest as
+the CPU under the same regime. More than one regime may be defined (for example a reserved
+integer-activation regime that is deterministic on GPU tensor cores, where float is not);
+the binding handles this transparently — a verifier that cannot reproduce a receipt's
+regime reports a **regime mismatch**, never a bare digest failure.
 
 What the shipped `vitni-receipt` binary commits is an **I/O pair under a fixed
 engine**: `inputs = (model_id, weights_hash, arch_hash, prompt_tokens, n_new_tokens)`,
@@ -256,7 +261,8 @@ model_digest_v1  9c0754458633e863e0fb5bb2bd00df0d8b813934687b9a4097a1a9a4179f3b0
 ```
 
 An implementation is conformant if it reproduces the v2 `model_digest` byte-for-bit —
-on any CPU vendor or instruction set — under regime `vitni-regime-2`. The v1 digest is
+on any CPU vendor or instruction set, or GPU backend (Metal / CUDA) — under regime
+`vitni-regime-2`. The v1 digest is
 retained so receipts issued before the regime binding stay verifiable; the same
 reference run reproduces it exactly.
 
